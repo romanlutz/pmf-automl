@@ -4,8 +4,8 @@ import numpy as np
 # (1) not sure why dtype is explicitly required in some places to force float32
 dtype = torch.float
 
-transform_forward = lambda x: (1+x.exp()).log()
-transform_backward = lambda x: (x.exp()-1).log()
+transform_forward = lambda x: (1 + x.exp()).log()
+transform_backward = lambda x: (x.exp() - 1).log()
 
 class Sparse1DTensor():
 
@@ -33,13 +33,16 @@ class Sparse1DTensor():
                 self.v[self.ix[kk]] = vv
 
 class BatchIndices():
-
+    '''
+    BatchIndices handles the random selection of batches of datasets
+    from the set of all datasets. This subset selection is required
+    for Stochastic Gradient Descent.
+    '''
     def __init__(self, N=None, ix=None, B=None):
 
-        assert (N is not None) or (ix is not None), \
-                                    'either N or ix should be provided'
+        assert (N is not None) or (ix is not None), 'either N or ix should be provided'
         if (N is not None) and (ix is not None):
-            assert N==ix.numel(), 'N must = size of ix'
+            assert N == ix.numel(), 'N must be equal to the size of ix'
             self.N = N
             self.ix = ix
         elif N is not None:
@@ -56,7 +59,7 @@ class BatchIndices():
                 B = self.N
             self.B = B
 
-        self.perm = torch.randperm(self.N, requires_grad=False)
+        self.permutation = torch.randperm(self.N, requires_grad=False)
 
     def __call__(self, B=None):
 
@@ -65,24 +68,26 @@ class BatchIndices():
         else:
             assert B <= self.N, 'Batch size must be <= data size'
 
-        # the no. of random indices to retrieve from current permutation
-        m = torch.min(torch.tensor([B, self.perm.numel()]))
-        # negative of the no. of elements remaining in current permutation
-        # after random indices have been retrieved
-        d = self.perm.numel() - B
+        # the number of random indices to retrieve from current permutation
+        n_selected = min(B, self.permutation.numel())
+        # difference between batch size and remaining elements in permutation
+        n_diff = self.permutation.numel() - B
         # retrieve random indices from current permutation
-        ix_batch = self.perm[:m]
+        ix_batch = self.permutation[:n_selected]
 
-        if d <= 0: # current permutation has run out
+        if n_diff <= 0:
+            # current permutation has run out
             # generate new permutation
-            self.perm = torch.randperm(self.N)
-            if d < 0: # random indices still needed
-                # fill remainder of random indices with beginning of new perm
-                ix_batch = torch.cat((ix_batch, self.perm[:-d]))
-                self.perm = self.perm[-d:]
+            self.permutation = torch.randperm(self.N)
+            if n_remaining < 0: 
+                # more random indices needed
+                # fill remainder of random indices with beginning of new permutation
+                ix_batch = torch.cat((ix_batch, self.permutation[:-n_diff]))
+                self.permutation = self.permutation[-n_diff:]
 
-        else: # current permutation still has entries
+        else:
+            # current permutation still has entries
             # discard used entries from current permutation
-            self.perm = self.perm[m:]
+            self.permutation = self.permutation[n_selected:]
 
         return self.ix[ix_batch]

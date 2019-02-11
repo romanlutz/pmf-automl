@@ -4,7 +4,7 @@ from utils import transform_forward, transform_backward
 
 def sqdist(X, Y):
 
-    assert X.size()[1] == Y.size()[1], 'dims do not match'
+    assert X.size()[1] == Y.size()[1], 'dimensions do not match'
 
     return ((X.reshape(X.size()[0], 1, X.size()[1])
              - Y.reshape(1, Y.size()[0], Y.size()[1]))**2).sum(2)
@@ -14,8 +14,7 @@ class Constant(nn.Module):
     def __init__(self, variance=1.0):
         super(Constant, self).__init__()
 
-        self.variance = torch.nn.Parameter(
-                            transform_backward(torch.tensor([variance])))
+        self.variance = torch.nn.Parameter(transform_backward(torch.tensor([variance])))
 
     def forward(self, X, X2=None):
 
@@ -24,7 +23,7 @@ class Constant(nn.Module):
         else:
             shape = [X.size()[0], X2.size()[0]]
 
-        return transform_forward(self.variance)*torch.ones(shape[0], shape[1])
+        return transform_forward(self.variance) * torch.ones(shape[0], shape[1])
 
 class RBF(nn.Module):
 
@@ -36,11 +35,8 @@ class RBF(nn.Module):
             self.lengthscale \
                 = torch.nn.Parameter(transform_backward(torch.ones(1, dim)))
         else:
-            self.lengthscale \
-                = torch.nn.Parameter(
-                    transform_backward(torch.tensor(lengthscale)))
-        self.variance = torch.nn.Parameter(
-                            transform_backward(torch.tensor([variance])))
+            self.lengthscale = torch.nn.Parameter(transform_backward(torch.tensor(lengthscale)))
+        self.variance = torch.nn.Parameter(transform_backward(torch.tensor([variance])))
 
     def forward(self, X, X2=None):
 
@@ -58,14 +54,10 @@ class Linear(nn.Module):
 
         self.dim = torch.tensor([dim], requires_grad=False)
         if lengthscale is None:
-            self.lengthscale \
-                = torch.nn.Parameter(transform_backward(torch.ones(1, dim)))
+            self.lengthscale = torch.nn.Parameter(transform_backward(torch.ones(1, dim)))
         else:
-            self.lengthscale \
-                = torch.nn.Parameter(
-                    transform_backward(torch.tensor(lengthscale)))
-        self.variance = torch.nn.Parameter(
-                            transform_backward(torch.tensor([variance])))
+            self.lengthscale = torch.nn.Parameter(transform_backward(torch.tensor(lengthscale)))
+        self.variance = torch.nn.Parameter(transform_backward(torch.tensor([variance])))
 
     def forward(self, X, X2=None):
 
@@ -74,7 +66,7 @@ class Linear(nn.Module):
 
         l = transform_forward(self.lengthscale)
 
-        return transform_forward(self.variance)*torch.mm(X/l, (X2/l).t())
+        return transform_forward(self.variance) * torch.mm(X / l, (X2 / l).t())
 
 class White(nn.Module):
     # when X != X2, K(X, X2) = 0

@@ -19,11 +19,11 @@ Tested with Python 3.6.5 on Ubuntu 16.04.5. Requires numpy, pandas, sklearn, tor
 
 **run.py** will load the data, run training, and then run evaluation (compared against random baselines).
 
-**gplvm.py** contains the PyTorch model definition.
+**gaussian_process_latent_variable_model.py** contains the PyTorch model definition.
 
-**kernels.py** contains a few GP kernel definitions.
+**kernels.py** contains a few Gaussian Process kernel definitions.
 
-**bo.py** contains the Bayesian optimization class definition, Expected Improvement acquisition function, and L1 warm-start initialization.
+**bayesian_optimization.py** contains the Bayesian optimization class definition, Expected Improvement acquisition function, and L1 warm-start initialization.
 
 **utils.py** contains some useful auxiliary classes and functions.
 
